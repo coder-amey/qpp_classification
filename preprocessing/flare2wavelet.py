@@ -41,18 +41,20 @@ def flare2wavelet(flare, plot=False):
     
     
     flare_peak = np.argmax(flare)
-    flare_start = flare_peak - BUFFER
+    if flare_peak < BUFFER:
+        flare_start = 0
+    else:
+        flare_start = flare_peak - BUFFER
     n = n - flare_start
     time = np.arange(n) * DT  # construct time array
     xlim = ([0, n * DT])  # plotting range
     flare = flare[flare_start:]
-    
     trend = splev(time, \
                   splrep(time, flare, s=S))
     detrended_flare = flare - trend
 
     variance = np.std(detrended_flare, ddof=1) ** 2
-    print("variance = ", variance)
+    # print("variance = ", variance)
 
     # TRANSFORMATION
     # Wavelet transform:
@@ -63,7 +65,7 @@ def flare2wavelet(flare, plot=False):
     for t_step, cap in enumerate(coi):
         coi_power[np.argwhere(period > cap), t_step] = 0        
     max_power = np.max(power)
-    print(f"Max power levels: {max_power}")
+    # print(f"Max power levels: {max_power}")
 
     # Significance levels:
     signif = wave_signif(([variance]), dt=DT, sigtest=0, scale=scale,
@@ -162,18 +164,18 @@ def flare2wavelet(flare, plot=False):
         plt5.ticklabel_format(axis='y', style='plain')
         plt.show()
     
-    return power, coi_power
+    return power.T, coi_power.T
     
 
 
 if __name__ == "__main__":
     flares_dataset = pd.read_pickle(os.path.join(DATA_PATH, 'flares.pkl'))
     print(flares_dataset.head)
-    for i in range(2):
-        _, coip = wavelet_fn(flares_dataset.iloc[i].X)
+    for i in range(48, 49):
+        _, coip = flare2wavelet(flares_dataset.iloc[i].X, plot=True)
         print(flares_dataset.iloc[i].y)
         print(coip.shape)
-        plt.plot(coip.T, 'x')
+        plt.plot(coip, 'x')
         plt.show()
 
 
@@ -186,4 +188,5 @@ flare
     -> wavelet_transform(detrended_flare)
     -> power, coi
         power / coi_power [num_scales x t_steps]     scales: discrete frequency bands [non-integrals]
+        [!] We transpose these values: power / coi_power [t_steps x num_scales]
 """
