@@ -103,7 +103,10 @@ def flare2wavelet(flare, plot=False):
 
         # Contour plot of wavelet power spectrum
         plt4 = plt.subplot(gs[2, 0:3])
-        levels = [0, 0.5, 1, max_power / 2, max_power]
+        if max_power <= 2:
+            levels = [0, 0.5, 1, 2]
+        else:
+            levels = [0, 0.5, 1, max_power / 2, max_power]
         # *** or use 'contour'
         CS = plt4.contourf(time, period, power, len(levels))
         im = plt4.contourf(CS, levels=levels,
@@ -143,7 +146,10 @@ def flare2wavelet(flare, plot=False):
 
         # Contour plot of wavelet coi_power spectrum
         plt5 = plt.subplot(gs[3, 0:3])
-        levels = [0, 0.5, 1, max_power / 2, max_power]
+        if max_power <= 2:
+            levels = [0, 0.5, 1, 2]
+        else:
+            levels = [0, 0.5, 1, max_power / 2, max_power]
         # *** or use 'contour'
         CS = plt.contourf(time, period, coi_power, len(levels))
         im = plt.contourf(CS, levels=levels,
@@ -170,11 +176,11 @@ def flare2wavelet(flare, plot=False):
 
 if __name__ == "__main__":
     flares_dataset = pd.read_pickle(os.path.join(DATA_PATH, 'flares.pkl'))
-    print(flares_dataset.head)
-    for i in range(48, 49):
+    # print(flares_dataset.head)
+    for i in [4, 29, 43, 76, 96, 102, 107, 121, 132, 152, 159, 168, 188, 191, 194, 196, 215]:
+        print(f"Ground truth: {flares_dataset.iloc[i].y}")
         _, coip = flare2wavelet(flares_dataset.iloc[i].X, plot=True)
-        print(flares_dataset.iloc[i].y)
-        print(coip.shape)
+        # print(coip.shape)
         plt.plot(coip, 'x')
         plt.show()
 

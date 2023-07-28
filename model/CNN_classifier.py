@@ -84,7 +84,7 @@ class CNN:
             return self.model.fit(X_train, y_train, epochs=N_EPOCHS, batch_size=BATCH_SIZE)
     
     def predict(self, X):
-        return self.model.predict(X)
+        return tf.round(self.model.predict(X))
     
     def evaluate(self, X_test, y_test):
         scores = self.model.evaluate(X_test, y_test)
