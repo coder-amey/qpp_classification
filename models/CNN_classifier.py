@@ -17,10 +17,11 @@ RANDOM_SEED = 47
 DATA_PATH = "/dcs/large/u2288122/Workspace/qpp_classification/consolidated_data"
 MODEL_PATH = "/dcs/large/u2288122/Workspace/qpp_classification/model/saved_models"
 VALIDATION = True
+PLOT = False
 DATA_FILE = "wavelets.pkl"
 IMG_SIZE = (300, 29)
-N_EPOCHS = 64
-BATCH_SIZE = 8
+N_EPOCHS = 32
+BATCH_SIZE = 4
 tf.random.set_seed(RANDOM_SEED) # Random seed for reproducibility
 
 def load_dataset(file_path, val=False):
@@ -40,19 +41,17 @@ class CNN:
         if model is None:
             self.model = Sequential([
                 Conv2D(
-                    64,
+                    32,
                     3,
                     strides=1,
                     activation='relu',
                     input_shape=(IMG_SIZE[0], IMG_SIZE[1], 1)
                 ),
-                MaxPooling2D(2),
-                Conv2D(32, 3, strides=1, activation='relu'),
-                MaxPooling2D(2),
+                MaxPooling2D(3),
                 Conv2D(16, 3, strides=1, activation='relu'),
-                MaxPooling2D(2),
+                MaxPooling2D(3),
                 Flatten(),
-                Dense(256, activation='tanh'),
+                Dense(256, activation='relu'),
                 Dropout((0.25)),
                 Dense(16, activation='relu'),
                 Dense(1, activation='sigmoid')
@@ -110,7 +109,7 @@ if __name__ == "__main__":
               \nTrain: {np.sum(y_train, axis=0) / y_train.shape[0]}\
               \tVal: {np.sum(y_val, axis=0) / y_val.shape[0]}\
               \tTrain: {np.sum(y_test, axis=0) / y_test.shape[0]}")
-        logs = detector.train(X_train=X_train, y_train=y_train, val=[X_val, y_val], plot_arch=True)
+        logs = detector.train(X_train=X_train, y_train=y_train, val=[X_val, y_val], plot_arch=PLOT)
     else:
         print(f"Dataset dimensions:\nTrain\t\tTest")
         for series in dataset:
@@ -120,7 +119,7 @@ if __name__ == "__main__":
         print(f"\nBinary data balance:\
               \nTrain: {np.sum(y_train, axis=0) / y_train.shape[0]}\
               \tTrain: {np.sum(y_test, axis=0) / y_test.shape[0]}")
-        logs = detector.train(X_train=X_train, y_train=y_train, plot_arch=True)
+        logs = detector.train(X_train=X_train, y_train=y_train, plot_arch=PLOT)
     
     
     detector.evaluate(X_test=X_test, y_test=y_test)
@@ -131,4 +130,4 @@ if __name__ == "__main__":
     plt.ylabel('Loss')
     plt.legend()
     plt.show()
-    detector.save()
+    # detector.save(name="QPP_detector_mini.ml")
