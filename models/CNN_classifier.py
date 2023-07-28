@@ -1,29 +1,39 @@
 # External imports
 import numpy as np
 import os
+import matplotlib.pyplot as plt
 import pandas as pd
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
+from tensorflow import keras
+from keras.metrics import AUC
+from keras.utils.vis_utils import plot_model
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Conv2D, Dense, Dropout, MaxPooling2D
-from tensorflow.keras.utils.vis_utils import plot_model
+from tensorflow.keras.layers import Conv2D, Dense, Dropout, Flatten, MaxPooling2D
+
 
 # Internal imports and global variables
 RANDOM_SEED = 47
 DATA_PATH = "/dcs/large/u2288122/Workspace/qpp_classification/consolidated_data"
-MODEL_PATH = "/dcs/large/u2288122/Workspace/qpp_classification/saved_models" 
+MODEL_PATH = "/dcs/large/u2288122/Workspace/qpp_classification/model/saved_models"
+VALIDATION = True
 DATA_FILE = "wavelets.pkl"
 IMG_SIZE = (300, 29)
-N_EPOCHS = 16
-BATCH_SIZE = 4
+N_EPOCHS = 64
+BATCH_SIZE = 8
 tf.random.set_seed(RANDOM_SEED) # Random seed for reproducibility
 
-def load_dataset(file_path):
+def load_dataset(file_path, val=False):
     dataset = pd.read_pickle(file_path)
     X = np.expand_dims(np.array(dataset.X.tolist()), axis=-1)
     y = np.expand_dims(np.array(dataset.y.tolist()), axis=-1)
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=RANDOM_SEED)
-    return X_train, y_train, X_test, y_test
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=RANDOM_SEED)
+    if val:
+        X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.1, random_state=RANDOM_SEED)
+        return X_train, y_train, X_val, y_val, X_test, y_test
+    
+    else:
+        return X_train, y_train, X_test, y_test
 
 class CNN:
     def __init__(self, model=None):
@@ -31,23 +41,24 @@ class CNN:
             self.model = Sequential([
                 Conv2D(
                     64,
-                    (12, 4),
+                    3,
                     strides=1,
                     activation='relu',
                     input_shape=(IMG_SIZE[0], IMG_SIZE[1], 1)
                 ),
-                MaxPooling2D(7),
-                Conv2D(32, 7, strides=1, activation='relu'),
-                MaxPooling2D((5)),
-                Conv2D(16, 5, strides=1, activation='relu'),
-                MaxPooling2D((3)),
-                Dense(256, activation='relu'),
-                Dropout((0.125)),
+                MaxPooling2D(2),
+                Conv2D(32, 3, strides=1, activation='relu'),
+                MaxPooling2D(2),
+                Conv2D(16, 3, strides=1, activation='relu'),
+                MaxPooling2D(2),
+                Flatten(),
+                Dense(256, activation='tanh'),
+                Dropout((0.25)),
                 Dense(16, activation='relu'),
-                Dense(1, activation='sigmoid'),
-            ])
-            self.model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy', 'f1_score'])
-        
+                Dense(1, activation='sigmoid')
+                ])
+            
+            self.model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy', AUC()])
         else:
             self.model = model
     
@@ -62,31 +73,62 @@ class CNN:
         model = tf.keras.models.load_model(os.path.join(path, name))
         return CNN(model)
     
-    def train(self, X_train, y_train, plot_arch=False):
+    def train(self, X_train, y_train, val=None, plot_arch=False):
         # Summarize layers
         print(f"Model summary:\n{self.model.summary()}")
         if plot_arch:
             plot_model(self.model, to_file="model.png", show_shapes=True)
-        return self.model.fit(X_train, y_train, epochs=N_EPOCHS, batch_size=BATCH_SIZE)
+        if val:
+            X_val, y_val = val
+            return self.model.fit(X_train, y_train, epochs=N_EPOCHS, batch_size=BATCH_SIZE, validation_data=(X_val, y_val))
+        else:
+            return self.model.fit(X_train, y_train, epochs=N_EPOCHS, batch_size=BATCH_SIZE)
     
     def predict(self, X):
         return self.model.predict(X)
     
     def evaluate(self, X_test, y_test):
         scores = self.model.evaluate(X_test, y_test)
+        print("\n\nModel Evaluation Report:")
         print("Accuracy: %.2f%%" % (scores[1]*100))
-        print("F1-scoer: %.2f%%" % (scores[2]))
+        print("AUC: %.2f" % (scores[2]))
 
 
 if __name__ == "__main__":
     # Load the dataset
-    dataset = load_dataset(os.path.join(DATA_PATH, DATA_FILE))
-    print(f"Dataset dimensions:\nTrain\t\t\tTest")
-    for series in dataset:
-        print(series.shape, end=" ")
-
-    X_train, y_train, X_test, y_test = dataset
-    
+    dataset = load_dataset(os.path.join(DATA_PATH, DATA_FILE), val=VALIDATION)
     detector = CNN()
-    detector.train(X_train=X_train, y_train=y_train, plot_arch=True)
+    logs = None
+
+    if VALIDATION:
+        print(f"Dataset dimensions:\nTrain\t\t\t\tVal\t\t\t\tTest")
+        for series in dataset:
+            print(series.shape, end=" ")
+
+        X_train, y_train, X_val, y_val, X_test, y_test = dataset
+        print(f"\nBinary data balance:\
+              \nTrain: {np.sum(y_train, axis=0) / y_train.shape[0]}\
+              \tVal: {np.sum(y_val, axis=0) / y_val.shape[0]}\
+              \tTrain: {np.sum(y_test, axis=0) / y_test.shape[0]}")
+        logs = detector.train(X_train=X_train, y_train=y_train, val=[X_val, y_val], plot_arch=True)
+    else:
+        print(f"Dataset dimensions:\nTrain\t\tTest")
+        for series in dataset:
+            print(series.shape, end=" ")
+
+        X_train, y_train, X_test, y_test = dataset
+        print(f"\nBinary data balance:\
+              \nTrain: {np.sum(y_train, axis=0) / y_train.shape[0]}\
+              \tTrain: {np.sum(y_test, axis=0) / y_test.shape[0]}")
+        logs = detector.train(X_train=X_train, y_train=y_train, plot_arch=True)
+    
+    
     detector.evaluate(X_test=X_test, y_test=y_test)
+    plt.plot(logs.history['loss'], label='Training Loss')
+    if VALIDATION:
+        plt.plot(logs.history['val_loss'], label='Validation Loss')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.legend()
+    plt.show()
+    detector.save()
