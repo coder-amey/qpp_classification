@@ -15,7 +15,7 @@ def set_dims(x):
 model = CNN.load("QPP_detector_mini.ml")
 dataset = pd.read_pickle(os.path.join(DATA_PATH, 'wavelets.pkl'))
 
-# Test individual examples
+# Test random/individual examples
 """
 df = pd.concat([dataset[dataset.y == 1].sample(n=5), dataset[dataset.y == 0].sample(n=5)])
 df = df.sample(frac=1).reset_index(drop=True)
@@ -25,12 +25,11 @@ for index, flare in df.iterrows():
 """
 
 # Test the whole dataset
-df = dataset.sample(frac=1).reset_index(drop=True)
-y_pred = model.predict(set_dims(df.X.tolist())).numpy()
+y_pred = model.predict(set_dims(dataset.X.tolist())).numpy()
 
 print("pred\ttruth\tmatch")
-for y_, y in zip(np.squeeze(y_pred), df.y.tolist()):
+for y_, y in zip(np.squeeze(y_pred), dataset.y.tolist()):
     print(int(y_), y, (y == int(y_)), sep="\t")
 
-mismatch_indices = np.where(np.squeeze(y_pred) != df.y.to_numpy())
+mismatch_indices = np.where(np.squeeze(y_pred) != dataset.y.to_numpy())
 print(f"Mismatch indices: {mismatch_indices[0]}")

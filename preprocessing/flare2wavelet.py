@@ -12,7 +12,7 @@ from wavelet_transform.waveletFunctions import wave_signif, wavelet
 
 # CONFIG
 DATA_PATH = "/dcs/large/u2288122/Workspace/qpp_classification/consolidated_data"
-S = 64
+S = 128
 DT = 1
 MOTHER = 'MORLET'
 PADDING = 1 # pad the time series with zeroes (recommended)
@@ -40,6 +40,7 @@ def flare2wavelet(flare, plot=False):
         plt.title('a) Raw flare')
     
     
+    """
     flare_peak = np.argmax(flare)
     if flare_peak < BUFFER:
         flare_start = 0
@@ -49,10 +50,11 @@ def flare2wavelet(flare, plot=False):
     time = np.arange(n) * DT  # construct time array
     xlim = ([0, n * DT])  # plotting range
     flare = flare[flare_start:]
+    """
+
     trend = splev(time, \
                   splrep(time, flare, s=S))
     detrended_flare = flare - trend
-
     variance = np.std(detrended_flare, ddof=1) ** 2
     # print("variance = ", variance)
 
@@ -113,7 +115,7 @@ def flare2wavelet(flare, plot=False):
             colors=['white', 'bisque', 'orange', 'orangered', 'darkred'])
         plt.xlim(xlim[:])
         plt.xlabel('Time (seconds)')
-        plt.ylabel('Frequency (seconds)')
+        plt.ylabel('Period (seconds)')
         plt.title('c) Wavelet Power Spectrum')
         
         # 95# significance contour, levels at -99 (fake) and 1 (95# signif)
@@ -155,7 +157,7 @@ def flare2wavelet(flare, plot=False):
         im = plt.contourf(CS, levels=levels,
             colors=['white', 'bisque', 'orange', 'orangered', 'darkred'])
         plt.xlabel('Time (seconds)')
-        plt.ylabel('Frequency (seconds)')
+        plt.ylabel('Period (seconds)')
         plt.title('e) Wavelet Power Spectrum (COI)')
         plt.xlim(xlim[:])
         # cone-of-influence, anything "above" is dubious
@@ -177,7 +179,7 @@ def flare2wavelet(flare, plot=False):
 if __name__ == "__main__":
     flares_dataset = pd.read_pickle(os.path.join(DATA_PATH, 'flares.pkl'))
     # print(flares_dataset.head)
-    for i in [4, 29, 43, 76, 96, 102, 107, 121, 132, 152, 159, 168, 188, 191, 194, 196, 215]:
+    for i in [4, 15, 16, 36, 47, 53, 64, 78, 83, 96, 105, 110, 138, 160, 167, 195, 198, 210]:
         print(f"Ground truth: {flares_dataset.iloc[i].y}")
         _, coip = flare2wavelet(flares_dataset.iloc[i].X, plot=True)
         # print(coip.shape)
