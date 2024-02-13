@@ -1,0 +1,100 @@
+Throughout qpps determined by
+
+f = Aexp(-(t-B)/tau)*cos((2pi*t)/P+phi)
+
+Note files included for all flares with (in Sims_noise) and without noise (Sims_nonoise)
+    
+
+1st flare shape:
+
+Based on Davenport.
+
+details in:
+	file_info_r&wnoise.txt - sims contain red and white noise
+	file_info_rnoise.txt - sims contain red noise
+	file_info_wnoise.txt - sims contain white noise
+
+columns: #sim_number, ID, t_peak, amp_scale, P, new_length, offset, a_qpp, B, t_e, phi, sn, r, sn_red
+
+sim_number is the simulation number
+ID tells you the number associated with the fits file.
+t_peak: location of the peak, randomly determined
+amp_scale: amplitude of flare, randomly determined
+P: period of qpp, randomly determined
+new_length: length of flare, randomly determined (originally simulated as rising phase from -1 to 0, declining phase from 0-19
+offset: offset of whole lightcurve from 0, randomly determined between 0-100
+a_qpp: amplitude of qpp, fixed relative to amplitude of flare as 0.7, 0.5 or 0.3, A in equation for QPP at top
+B: always 0 so can ignore (in qpp equation above)
+t_e: decay time of qpp, varied systematically between 1 and 5, tau in equation above
+phi: phase of qpp, randomly generated between 0 and 2pi, in equation above
+sn: S/N of QPP relative to white noise
+r: used to determine red noise, randomly generated between -0.09 and 0.09
+sn_red: S/N of red noise, randomly determined
+
+Note that when only red [white] noise, the parameters for white [red] noise may still be non-zero
+
+-----------------------------------------------------------------------------------
+
+2nd flare shape:
+
+Based on two half Gaussians
+
+details in:
+	file_info_g_r&wnoise.txt - sims contain red and white noise
+	file_info_g_rnoise.txt - sims contain red noise
+	file_info_g_wnoise.txt - sims contain white noise
+
+columns: #sim_number, id, t_peak, amp_scale, sig_r, sig_f, new_length, offset, P, a_qpp, B, t_e, phi, sn, r, sn_red, bgd, grad_scale, t1
+sim_number is the simulation number
+ID tells you the number associated with the fits file.
+t_peak: location of the peak, randomly determined
+amp_scale: amplitude of flare, randomly determined
+sig_r: width of gaussian for rising phase, randomly determined between 0.1-3
+sig_f: width of gaussian for decay phase, randomly determined between 5-20
+new_length: length of flare, randomly determined (originally simulated as rising phase from -7 to 0, declining phase from 0-19 (may have an error in NEED TO CHECK)
+offset: offset of whole lightcurve from 0, randomly determined between 0-100
+P: period of qpp, randomly determined
+a_qpp: amplitude of qpp, fixed relative to amplitude of flare as 0.7, 0.5 or 0.3, A in equation for QPP at top
+B: always 0 so can ignore (in qpp equation above)
+t_e: decay time of qpp, varied systematically between 1 and 5, tau in equation above
+phi: phase of qpp, randomly generated between 0 and 2pi, in equation above
+sn: S/N of QPP relative to white noise
+r: used to determine red noise, randomly generated between -0.09 and 0.09
+sn_red: S/N of red noise, randomly determined
+bgd: type of background - ignore - I have not included a background but forgot to change output
+grad_scale: ditto
+t1: ditto
+
+Note that when only red [white] noise, the parameters for white [red] noise may still be non-zero
+
+--------------------------------------------------------------------------------
+
+3rd flare shape:
+
+Based on Grycuik, eq 4, A=B=1 but then flare height scaled to give parameter below
+
+details in:
+	file_info_r&wnoise.txt - sims contain red and white noise
+	file_info_rnoise.txt - sims contain red noise
+	file_info_wnoise.txt - sims contain white noise
+
+columns: #sum_number, id, t_peak, C, D, amp_scale, P, new_length, offset, a_qpp, B, t_e, phi, sn, r, sn_red
+
+sim_number is the simulation number
+ID tells you the number associated with the fits file.
+t_peak: location of the peak, randomly determined
+C: flare parameter as defined in eq 4 of Grycuik, randomly determined between 1 and 5
+D: flare parameter as defined in eq 4 of Grycuik, randomly determined between 0.25 and 1
+amp_scale: amplitude of flare, randomly determined
+P: period of qpp, randomly determined
+new_length: length of flare, randomly determined (originally simulated as rising phase from -1 to 0, declining phase from 0-19
+offset: offset of whole lightcurve from 0, randomly determined between 0-100
+a_qpp: amplitude of qpp, fixed relative to amplitude of flare as 0.7, 0.5 or 0.3, A in equation for QPP at top
+B: always 0 so can ignore (in qpp equation above)
+t_e: decay time of qpp, varied systematically between 1 and 5, tau in equation above
+phi: phase of qpp, randomly generated between 0 and 2pi, in equation above
+sn: S/N of QPP relative to white noise
+r: used to determine red noise, randomly generated between -0.09 and 0.09
+sn_red: S/N of red noise, randomly determined
+
+Note that when only red [white] noise, the parameters for white [red] noise may still be non-zero
