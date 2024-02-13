@@ -27,5 +27,7 @@ if __name__ == "__main__":
 
     # Store the dataset
     flares_dataset = pd.DataFrame(data, columns=["flare_id", "X", "y", "amp_ratio"]).set_index('flare_id')
+    flares_dataset.index = flares_dataset.index.astype(int)
+    flares_dataset.y = flares_dataset.y.astype(int)
     flares_dataset.to_pickle(os.path.join(DATA_PATH, 'flares_large.pkl'))
  

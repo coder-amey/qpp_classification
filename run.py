@@ -1,7 +1,7 @@
 '''
 TO-DO:
 1) 3x small sets
-2) Tune params
+2) Tune params (w_size, b_size)
 3) 3 models * 3 sets
 4) Increase w_size and make 1 large
 5) Train model on large

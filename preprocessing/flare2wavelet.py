@@ -14,19 +14,18 @@ from wavelet_transform.waveletFunctions import wave_signif, wavelet
 
 # CONFIG
 DATA_PATH = "/dcs/large/u2288122/Workspace/qpp_classification/consolidated_data"
-S = 40
 DT = 1
 MOTHER = 'MORLET'
 PADDING = 1 # pad the time series with zeroes (recommended)
-BUFFER = S # Buffer-signal on the left of peak
+BUFFER = 0 # Buffer-signal on the left of peak
 DJ = 28.0
 LAG1 = 0.72  # lag-1 autocorrelation for red noise background
 
 
-def running_average_filter(signal, window_size=S):
+def running_average_filter(signal, window_size):
     assert(np.ndim(signal) == 1)
     n = signal.shape[0]
-    assert(n > window_size)
+    assert n > window_size, f"\nClipped flare ({n}) is smaller than window size ({window_size})"
     
     smoothed_signal = np.convolve( \
         np.pad(signal, (window_size//2, window_size-(window_size//2)-1), mode='edge'), \
@@ -34,7 +33,7 @@ def running_average_filter(signal, window_size=S):
     return smoothed_signal
 
 
-def flare2wavelet(flare, plot=False):
+def flare2wavelet(flare, window_size, plot=False):
     # READ THE DATA & DERIVE PARAMS
     n = len(flare)
     time = np.arange(n) * DT  # construct time array
@@ -48,9 +47,9 @@ def flare2wavelet(flare, plot=False):
     else:
         flare_start = flare_peak - BUFFER
     
-    trend = running_average_filter(np.array(flare[flare_start:]))
+    trend = running_average_filter(np.array(flare[flare_start:]), window_size)
     detrended_flare = np.array(flare[flare_start:]) - trend
-
+    # [!] De-trended flare has a hard-wired window size
     detrended_flare = running_average_filter(detrended_flare, window_size=5)
 
     # Pad the signals with zeros up to original dimensions
@@ -199,7 +198,7 @@ if __name__ == "__main__":
     # [3, 5, 16, 20, 27, 31, 32, 36, 40, 45, 47, 51, 53, 78, 83, 94, 96, 105, 127, 138, 146, 147, 158, 176, 195, 196, 215]
     for i in [3, 5, 16, 20, 27]:
         print(f"Ground truth: {flares_dataset.iloc[i].y}")
-        _, coip = flare2wavelet(flares_dataset.iloc[i].X, plot=True)
+        _, coip = flare2wavelet(flares_dataset.iloc[i].X, 20, plot=True)
         # print(coip.shape)
         # plt.plot(coip, 'x')
         # plt.show()
