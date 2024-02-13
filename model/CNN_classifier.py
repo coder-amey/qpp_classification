@@ -130,4 +130,4 @@ if __name__ == "__main__":
     plt.ylabel('Loss')
     plt.legend()
     plt.show()
-    # detector.save(name="QPP_detector_mini.ml")
+    # detector.save(name="QPP_unclipped.ml")

@@ -10,51 +10,52 @@ from scipy.interpolate import splrep, splev
 # Local imports
 from wavelet_transform.waveletFunctions import wave_signif, wavelet
 
+#TODO: secondary smoothing; old_data x 3; new_data -> (noisy, clean) x 3. predict
+
 # CONFIG
 DATA_PATH = "/dcs/large/u2288122/Workspace/qpp_classification/consolidated_data"
-S = 128
+S = 40
 DT = 1
 MOTHER = 'MORLET'
 PADDING = 1 # pad the time series with zeroes (recommended)
-BUFFER = 20 # Buffer-signal on the left of peak
+BUFFER = S # Buffer-signal on the left of peak
 DJ = 28.0
 LAG1 = 0.72  # lag-1 autocorrelation for red noise background
+
+
+def running_average_filter(signal, window_size=S):
+    assert(np.ndim(signal) == 1)
+    n = signal.shape[0]
+    assert(n > window_size)
+    
+    smoothed_signal = np.convolve( \
+        np.pad(signal, (window_size//2, window_size-(window_size//2)-1), mode='edge'), \
+            np.ones((window_size,))/window_size, mode='valid')
+    return smoothed_signal
+
 
 def flare2wavelet(flare, plot=False):
     # READ THE DATA & DERIVE PARAMS
     n = len(flare)
     time = np.arange(n) * DT  # construct time array
     xlim = ([0, n * DT])  # plotting range
+    ylim = ([1, 1000])
 
-    if plot:
-        fig = plt.figure(figsize=(9, 12))
-        gs = GridSpec(4, 4, hspace=0.4, wspace=0.75)
-        plt.subplots_adjust(left=0.1, bottom=0.05, right=0.9, top=0.95,
-                        wspace=0, hspace=0)
-        # Plot the flare
-        plt1 = plt.subplot(gs[0, 0:2])
-        plt1.plot(time, flare, 'k')
-        plt.xlim(xlim[:])
-        plt.xlabel('Time (seconds)')
-        plt.ylabel('Flux')
-        plt.title('a) Raw flare')
-    
-    
-    """
+    # Find and clip at the flare peak
     flare_peak = np.argmax(flare)
     if flare_peak < BUFFER:
         flare_start = 0
     else:
         flare_start = flare_peak - BUFFER
-    n = n - flare_start
-    time = np.arange(n) * DT  # construct time array
-    xlim = ([0, n * DT])  # plotting range
-    flare = flare[flare_start:]
-    """
+    
+    trend = running_average_filter(np.array(flare[flare_start:]))
+    detrended_flare = np.array(flare[flare_start:]) - trend
 
-    trend = splev(time, \
-                  splrep(time, flare, s=S))
-    detrended_flare = flare - trend
+    detrended_flare = running_average_filter(detrended_flare, window_size=5)
+
+    # Pad the signals with zeros up to original dimensions
+    detrended_flare = np.pad(detrended_flare, (n - detrended_flare.shape[0], 0))
+
     variance = np.std(detrended_flare, ddof=1) ** 2
     # print("variance = ", variance)
 
@@ -84,10 +85,22 @@ def flare2wavelet(flare, plot=False):
     
     #PLOTTING
     if plot:
+        fig = plt.figure(figsize=(9, 12))
+        gs = GridSpec(4, 4, hspace=0.4, wspace=0.75)
+        plt.subplots_adjust(left=0.1, bottom=0.05, right=0.9, top=0.95,
+                        wspace=0, hspace=0)
+        # Plot the flare
+        plt1 = plt.subplot(gs[0, 0:2])
+        plt1.plot(time, flare, 'k')
+        plt.xlim(xlim[:])
+        plt.xlabel('Time (seconds)')
+        plt.ylabel('Flux')
+        plt.title('a) Raw flare')
+
         # Plot the flare along with the trend
         plt2 = plt.subplot(gs[0, 2:])
         plt2.plot(time, flare, 'k')
-        plt2.plot(time, trend, 'r--')
+        plt2.plot(time[flare_start::], trend, 'r--')
         plt.xlim(xlim[:])
         plt.xlabel('Time (seconds)')
         plt.ylabel('Flux')
@@ -127,6 +140,7 @@ def flare2wavelet(flare, plot=False):
         # format y-scale
         plt4.set_yscale('log')
         plt.ylim([np.min(period), np.max(period)])
+        plt.ylim(bottom=1)
         ax = plt.gca().yaxis
         ax.set_major_formatter(ticker.ScalarFormatter())
         plt.ticklabel_format(axis='y', style='plain')
@@ -141,6 +155,7 @@ def flare2wavelet(flare, plot=False):
         # format y-scale
         plt4.set_yscale('log')
         plt.ylim([np.min(period), np.max(period)])
+        plt.ylim(bottom=1)
         ax = plt.gca().yaxis
         ax.set_major_formatter(ticker.ScalarFormatter())
         plt.ticklabel_format(axis='y', style='plain')
@@ -167,6 +182,7 @@ def flare2wavelet(flare, plot=False):
         # format y-scale
         plt5.set_yscale('log')
         plt.ylim([np.min(period), np.max(period)])
+        plt.ylim(bottom=1)
         ax = plt.gca().yaxis
         ax.set_major_formatter(ticker.ScalarFormatter())
         plt5.ticklabel_format(axis='y', style='plain')
@@ -179,12 +195,14 @@ def flare2wavelet(flare, plot=False):
 if __name__ == "__main__":
     flares_dataset = pd.read_pickle(os.path.join(DATA_PATH, 'flares.pkl'))
     # print(flares_dataset.head)
-    for i in [4, 15, 16, 36, 47, 53, 64, 78, 83, 96, 105, 110, 138, 160, 167, 195, 198, 210]:
+    # [4, 15, 16, 36, 47, 53, 64, 78, 83, 96, 105, 110, 138, 160, 167, 195, 198, 210]
+    # [3, 5, 16, 20, 27, 31, 32, 36, 40, 45, 47, 51, 53, 78, 83, 94, 96, 105, 127, 138, 146, 147, 158, 176, 195, 196, 215]
+    for i in [3, 5, 16, 20, 27]:
         print(f"Ground truth: {flares_dataset.iloc[i].y}")
         _, coip = flare2wavelet(flares_dataset.iloc[i].X, plot=True)
         # print(coip.shape)
-        plt.plot(coip, 'x')
-        plt.show()
+        # plt.plot(coip, 'x')
+        # plt.show()
 
 
 # NOTES

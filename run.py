@@ -1,3 +1,14 @@
+'''
+TO-DO:
+1) 3x small sets
+2) Tune params
+3) 3 models * 3 sets
+4) Increase w_size and make 1 large
+5) Train model on large
+6) README about w_size, img_size, epochs, b_size
+'''
+
+
 import numpy as np
 import pandas as pd
 import os
@@ -12,7 +23,7 @@ def set_dims(x):
     return x
 
 
-model = CNN.load("QPP_detector_mini.ml")
+model = CNN.load("QPP_unclipped.ml")
 dataset = pd.read_pickle(os.path.join(DATA_PATH, 'wavelets.pkl'))
 
 # Test random/individual examples
