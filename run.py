@@ -1,12 +1,6 @@
 '''
 TO-DO:
-1) 3x small sets
-2) Tune params (w_size, b_size)
-3) 3 models * 3 sets
-========================================
-4) Increase w_size and make 1 large
-5) Train model on large
-6) README about w_size, img_size, epochs, b_size
+README about w_size, img_size, epochs, b_size
 '''
 
 import matplotlib.pyplot as plt
@@ -18,7 +12,7 @@ from model.CNN_classifier import CNN
 from preprocessing.flare2wavelet import flare2wavelet
 
 MODE = "Plot" # "Evaluate", "Explore", "Match" or "Plot"
-MODEL = "QPP_detector_500t_ws60.ml"
+MODEL = "QPP_detector_500t_ws50.ml"
 DATASETS = ["wavelets_ws30.pkl"] #["wavelets_ws20.pkl", "wavelets_ws30.pkl", "wavelets_ws40.pkl", "wavelets_ws50.pkl"]
 DATA_PATH = "/dcs/large/u2288122/Workspace/qpp_classification/consolidated_data"
 
@@ -104,4 +98,9 @@ ws50    1.49/.69/.76    1.2/.77/.84     .87/.83/.90
 
 For small dataset, ws_30 model is most consistent. Results do vary by window_size.
 Larger batch size leads to faster convergence.
+
+For large dataset, models tend to overfit after certain epochs.
+Larger window size leads to quicker overfitting.
+Analysis of the loss curves indicates that 40 is the best window size.
+Smaller window size degrades performance.
 """

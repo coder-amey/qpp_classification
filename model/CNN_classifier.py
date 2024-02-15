@@ -16,13 +16,13 @@ gpu_server = True
 selected_gpu = '0'
 
 # Global variables
-NAME = "QPP_detector_500t_ws40.ml"
-DATA_FILE = "wavelets_large_ws40.pkl"
+NAME = "QPP_detector_500t_ws30.ml"
+DATA_FILE = "wavelets_large_ws30.pkl"
 VALIDATION = True
 PLOT = False
 DATA_PATH = "/dcs/large/u2288122/Workspace/qpp_classification/consolidated_data"
 MODEL_PATH = "/dcs/large/u2288122/Workspace/qpp_classification/model/saved_models"
-IMG_SIZE = (500, 32)
+IMG_SIZE = (500, 32)    #small: (300, 29) or large: (500, 32)
 N_EPOCHS = 64
 BATCH_SIZE = 256
 RANDOM_SEED = 47
