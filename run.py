@@ -1,5 +1,7 @@
 '''
 TO-DO:
+Mail
+Compress pickles
 README about w_size, img_size, epochs, b_size
 '''
 
@@ -35,15 +37,23 @@ if MODE == "Explore":
     '''
     #OR
     # Test individual examples
-    indices = [157421, 214510, 253143]
+    indices = [74211, 919369, 36048, 518045, 278119]
     df = dataset.loc[indices]
 
-    window_sizes = [30] * len(df)
-    print("pred\ttruth")
-    for w_size, (index, row) in zip(window_sizes, df.iterrows()):
-        _, x = flare2wavelet(row.flare, window_size=w_size, plot=True)
-        print(np.squeeze(
-            detector.predict(set_dims(x)).numpy()), row.y, sep="\t")
+    window_sizes = [40] * len(df)
+    if "amp_ratio" in df.columns:
+        print("pred\ttruth\tamp_ratio")
+        for w_size, (index, row) in zip(window_sizes, df.iterrows()):
+            _, x = flare2wavelet(row.flare, window_size=w_size, plot=True)
+            print(np.squeeze(
+                detector.predict(set_dims(x)).numpy()), row.y, row.amp_ratio, sep="\t")
+
+    else:
+        print("pred\ttruth")
+        for w_size, (index, row) in zip(window_sizes, df.iterrows()):
+            _, x = flare2wavelet(row.flare, window_size=w_size, plot=True)
+            print(np.squeeze(
+                detector.predict(set_dims(x)).numpy()), row.y, sep="\t")
 
 if MODE == "Evaluate":
 # Test the whole dataset
@@ -61,6 +71,9 @@ if MODE == "Match":
 
     mismatch_indices = dataset[dataset.y != np.squeeze(y_pred)].index.tolist()
     print(f"Mismatch indices: {mismatch_indices}")
+    if "amp_ratio" in df.columns:
+        dataset.amp_ratio = dataset.amp_ratio.round(1)
+        print(dataset.loc[mismatch_indices, "amp_ratio"].value_counts())
 
 if MODE == "Plot" and detector.logs:
     print("\n\nModel Training Report:\n\tTraining set:", end="\t")
