@@ -55,7 +55,7 @@ if MODE == "Evaluate":
 # Test the whole dataset
     for dataset in datasets:
         print(f"{MODEL} model evaluation:")
-        model.evaluate(set_dims(dataset.X.tolist()), set_dims(dataset.y.tolist()))
+        detector.evaluate(set_dims(dataset.X.tolist()), set_dims(dataset.y.tolist()))
 
 if MODE == "Match":
     dataset = datasets[0]
@@ -69,6 +69,16 @@ if MODE == "Match":
     print(f"Mismatch indices: {mismatch_indices}")
 
 if MODE == "Plot" and detector.logs:
+    print("\n\nModel Training Report:\n\tTraining set:", end="\t")
+    print("Loss: %.2f" % (detector.logs["train_log"]['loss'][-1]), end="\t")
+    print("Accuracy: %.2f%%" % (detector.logs["train_log"]['accuracy'][-1]*100), end="\t")
+    print("AUC: %.2f" % (detector.logs["train_log"]['auc'][-1]))
+
+    print("\tValidation set:", end="\t")
+    print("Loss: %.2f" % (detector.logs["train_log"]['val_loss'][-1]), end="\t")
+    print("Accuracy: %.2f%%" % (detector.logs["train_log"]['val_accuracy'][-1]*100), end="\t")
+    print("AUC: %.2f" % (detector.logs["train_log"]['val_auc'][-1]))
+
     plt.plot(detector.logs["train_log"]['loss'], label='Training Loss')
     if 'val_loss' in detector.logs["train_log"]:
         plt.plot(detector.logs["train_log"]['val_loss'], label='Validation Loss')
