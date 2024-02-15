@@ -1,8 +1,6 @@
 '''
 TO-DO:
-Mail
-Compress pickles
-README about w_size, img_size, epochs, b_size
+README about large_datasets, w_size, img_size, epochs, b_size
 '''
 
 import matplotlib.pyplot as plt
