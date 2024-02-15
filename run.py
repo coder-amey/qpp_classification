@@ -9,7 +9,7 @@ TO-DO:
 6) README about w_size, img_size, epochs, b_size
 '''
 
-
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import os
@@ -17,7 +17,7 @@ import os
 from model.CNN_classifier import CNN
 from preprocessing.flare2wavelet import flare2wavelet
 
-MODE = "Match" # "Evaluate", "Explore" or "Match"
+MODE = "Plot" # "Evaluate", "Explore", "Match" or "Plot"
 MODEL = "QPP_detector_300t_ws30.ml"
 DATASETS = ["wavelets_ws30.pkl"] #["wavelets_ws20.pkl", "wavelets_ws30.pkl", "wavelets_ws40.pkl", "wavelets_ws50.pkl"]
 DATA_PATH = "/dcs/large/u2288122/Workspace/qpp_classification/consolidated_data"
@@ -29,7 +29,7 @@ def set_dims(x):
     return x
 
 
-model = CNN.load(MODEL)
+detector = CNN.load(MODEL)
 datasets = [pd.read_pickle(os.path.join(DATA_PATH, pickle)) for pickle in DATASETS]
 
 if MODE == "Explore":
@@ -49,7 +49,7 @@ if MODE == "Explore":
     for w_size, (index, row) in zip(window_sizes, df.iterrows()):
         _, x = flare2wavelet(row.flare, window_size=w_size, plot=True)
         print(np.squeeze(
-            model.predict(set_dims(x)).numpy()), row.y, sep="\t")
+            detector.predict(set_dims(x)).numpy()), row.y, sep="\t")
 
 if MODE == "Evaluate":
 # Test the whole dataset
@@ -59,7 +59,7 @@ if MODE == "Evaluate":
 
 if MODE == "Match":
     dataset = datasets[0]
-    y_pred = model.predict(set_dims(dataset.X.tolist())).numpy()
+    y_pred = detector.predict(set_dims(dataset.X.tolist())).numpy()
 
     print("pred\ttruth\tmatch")
     for y_, y in zip(np.squeeze(y_pred), dataset.y.tolist()):
@@ -68,6 +68,15 @@ if MODE == "Match":
     mismatch_indices = dataset[dataset.y != np.squeeze(y_pred)].index.tolist()
     print(f"Mismatch indices: {mismatch_indices}")
 
+if MODE == "Plot" and detector.logs:
+    plt.plot(detector.logs["train_log"]['loss'], label='Training Loss')
+    if 'val_loss' in detector.logs["train_log"]:
+        plt.plot(detector.logs["train_log"]['val_loss'], label='Validation Loss')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.legend()
+    plt.show()
+    
 """
                 Train            Val            Test        (loss/acc/auc)
 Model

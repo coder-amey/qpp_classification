@@ -2,7 +2,6 @@
 import pickle
 import numpy as np
 import os
-import matplotlib.pyplot as plt
 import pandas as pd
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
@@ -160,15 +159,6 @@ if __name__ == "__main__":
               \tTrain: {np.sum(y_test, axis=0) / y_test.shape[0]}")
         logs = detector.train(X_train=X_train, y_train=y_train, plot_arch=PLOT)
     
-    
     detector.evaluate(X_test=X_test, y_test=y_test)
-    plt.plot(detector.logs.history['loss'], label='Training Loss')
-    if VALIDATION:
-        plt.plot(detector.logs.history['val_loss'], label='Validation Loss')
-    plt.xlabel('Epoch')
-    plt.ylabel('Loss')
-    plt.legend()
-    plt.show()
-    
     if NAME:
         detector.save(name=NAME)
