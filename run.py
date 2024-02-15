@@ -18,7 +18,7 @@ from model.CNN_classifier import CNN
 from preprocessing.flare2wavelet import flare2wavelet
 
 MODE = "Plot" # "Evaluate", "Explore", "Match" or "Plot"
-MODEL = "QPP_detector_300t_ws30.ml"
+MODEL = "QPP_detector_500t_ws60.ml"
 DATASETS = ["wavelets_ws30.pkl"] #["wavelets_ws20.pkl", "wavelets_ws30.pkl", "wavelets_ws40.pkl", "wavelets_ws50.pkl"]
 DATA_PATH = "/dcs/large/u2288122/Workspace/qpp_classification/consolidated_data"
 
