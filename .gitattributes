@@ -1,4 +1,0 @@
-consolidated_data/wavelets_large_ws50.pkl filter=lfs diff=lfs merge=lfs -text
-consolidated_data/wavelets_large_ws60.pkl filter=lfs diff=lfs merge=lfs -text
-consolidated_data/wavelets_large_ws40.pkl filter=lfs diff=lfs merge=lfs -text
-consolidated_data/wavelets_large_ws30.pkl filter=lfs diff=lfs merge=lfs -text
