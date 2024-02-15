@@ -11,9 +11,9 @@ import os
 from model.CNN_classifier import CNN
 from preprocessing.flare2wavelet import flare2wavelet
 
-MODE = "Plot" # "Evaluate", "Explore", "Match" or "Plot"
-MODEL = "QPP_detector_500t_ws50.ml"
-DATASETS = ["wavelets_ws30.pkl"] #["wavelets_ws20.pkl", "wavelets_ws30.pkl", "wavelets_ws40.pkl", "wavelets_ws50.pkl"]
+MODE = "Evaluate" # "Evaluate", "Explore", "Match" or "Plot"
+MODEL = "QPP_detector_500t_ws40_optim.ml"
+DATASETS = ["wavelets_large_ws30.pkl", "wavelets_large_ws40.pkl", "wavelets_large_ws50.pkl", "wavelets_large_ws60.pkl"]
 DATA_PATH = "/dcs/large/u2288122/Workspace/qpp_classification/consolidated_data"
 
 def set_dims(x):
@@ -101,6 +101,7 @@ Larger batch size leads to faster convergence.
 
 For large dataset, models tend to overfit after certain epochs.
 Larger window size leads to quicker overfitting.
-Analysis of the loss curves indicates that 40 is the best window size.
+Analysis of the loss curves indicates that 40 is the optimal window size.
+And 20 is the optimal batch size.
 Smaller window size degrades performance.
 """
