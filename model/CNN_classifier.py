@@ -1,4 +1,5 @@
 # External imports
+import pickle
 import numpy as np
 import os
 import matplotlib.pyplot as plt
@@ -16,15 +17,15 @@ gpu_server = True
 selected_gpu = '0'
 
 # Global variables
-NAME = False #"QPP_detector_300t_ws30.ml"
-DATA_FILE = "wavelets_ws30.pkl"
+NAME = "QPP_detector_500t_ws40.ml"
+DATA_FILE = "wavelets_large_ws40.pkl"
 VALIDATION = True
 PLOT = False
 DATA_PATH = "/dcs/large/u2288122/Workspace/qpp_classification/consolidated_data"
 MODEL_PATH = "/dcs/large/u2288122/Workspace/qpp_classification/model/saved_models"
-IMG_SIZE = (300, 29)
-N_EPOCHS = 32
-BATCH_SIZE = 16
+IMG_SIZE = (500, 32)
+N_EPOCHS = 64
+BATCH_SIZE = 256
 RANDOM_SEED = 47
 tf.random.set_seed(RANDOM_SEED) # Random seed for reproducibility
 
@@ -32,16 +33,16 @@ def load_dataset(file_path, val=False):
     dataset = pd.read_pickle(file_path)
     X = np.expand_dims(np.array(dataset.X.tolist()), axis=-1)
     y = np.expand_dims(np.array(dataset.y.tolist()), axis=-1)
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=RANDOM_SEED)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=RANDOM_SEED)
     if val:
-        X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.1, random_state=RANDOM_SEED)
+        X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.05, random_state=RANDOM_SEED)
         return X_train, y_train, X_val, y_val, X_test, y_test
     
     else:
         return X_train, y_train, X_test, y_test
 
 class CNN:
-    def __init__(self, model=None):
+    def __init__(self, model=None, logs=None):
         if model is None:
             self.model = Sequential([
                 Conv2D(
@@ -62,19 +63,35 @@ class CNN:
                 ])
             
             self.model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy', AUC()])
+            self.logs = None
         else:
             self.model = model
+            self.logs = logs
     
     def __init_subclass__(cls) -> None:
         pass
 
     def save(self, name="QPP_detector.ml", path=MODEL_PATH):
         self.model.save(os.path.join(path, name))
+        if logs:
+            try:
+                with open(os.path.join(path, name, "history.log"), 'wb') as pkl_file:
+                    pickle.dump(self.logs, pkl_file)
+            except:
+                print("Error storing log file.")
+                raise
+
     
     @staticmethod
     def load(name="QPP_detector.ml", path=MODEL_PATH):
         model = tf.keras.models.load_model(os.path.join(path, name))
-        return CNN(model)
+        try:
+            with open(os.path.join(path, name, "history.log"), 'rb') as pkl_file:
+                logs = pickle.load(pkl_file)
+        except:
+            print("Error loading log file.")
+            logs = None
+        return CNN(model, logs)
     
     def train(self, X_train, y_train, val=None, plot_arch=False):
         # Summarize layers
@@ -83,9 +100,10 @@ class CNN:
             plot_model(self.model, to_file="model.png", show_shapes=True)
         if val:
             X_val, y_val = val
-            return self.model.fit(X_train, y_train, epochs=N_EPOCHS, batch_size=BATCH_SIZE, validation_data=(X_val, y_val))
+            self.logs = self.model.fit(X_train, y_train, epochs=N_EPOCHS, batch_size=BATCH_SIZE, validation_data=(X_val, y_val))
         else:
-            return self.model.fit(X_train, y_train, epochs=N_EPOCHS, batch_size=BATCH_SIZE)
+            self.logs = self.model.fit(X_train, y_train, epochs=N_EPOCHS, batch_size=BATCH_SIZE)
+        return self.logs
     
     def predict(self, X):
         return tf.round(self.model.predict(X))
@@ -120,7 +138,6 @@ if __name__ == "__main__":
     # Load the dataset
     dataset = load_dataset(os.path.join(DATA_PATH, DATA_FILE), val=VALIDATION)
     detector = CNN()
-    logs = None
 
     if VALIDATION:
         print(f"Dataset dimensions:\nTrain\t\t\t\tVal\t\t\t\tTest")
@@ -131,7 +148,7 @@ if __name__ == "__main__":
         print(f"\nBinary data balance:\
               \nTrain: {np.sum(y_train, axis=0) / y_train.shape[0]}\
               \tVal: {np.sum(y_val, axis=0) / y_val.shape[0]}\
-              \tTrain: {np.sum(y_test, axis=0) / y_test.shape[0]}")
+              \tTest: {np.sum(y_test, axis=0) / y_test.shape[0]}")
         logs = detector.train(X_train=X_train, y_train=y_train, val=[X_val, y_val], plot_arch=PLOT)
     else:
         print(f"Dataset dimensions:\nTrain\t\tTest")
@@ -146,9 +163,9 @@ if __name__ == "__main__":
     
     
     detector.evaluate(X_test=X_test, y_test=y_test)
-    plt.plot(logs.history['loss'], label='Training Loss')
+    plt.plot(detector.logs.history['loss'], label='Training Loss')
     if VALIDATION:
-        plt.plot(logs.history['val_loss'], label='Validation Loss')
+        plt.plot(detector.logs.history['val_loss'], label='Validation Loss')
     plt.xlabel('Epoch')
     plt.ylabel('Loss')
     plt.legend()

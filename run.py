@@ -17,10 +17,11 @@ import os
 from model.CNN_classifier import CNN
 from preprocessing.flare2wavelet import flare2wavelet
 
-MODE = "Evaluate" # "Evaluate", "Explore" or "Match"
-MODEL = "QPP_detector_300t_ws50.ml"
-DATASETS = ["wavelets_ws20.pkl", "wavelets_ws30.pkl", "wavelets_ws40.pkl", "wavelets_ws50.pkl"]
+MODE = "Match" # "Evaluate", "Explore" or "Match"
+MODEL = "QPP_detector_300t_ws30.ml"
+DATASETS = ["wavelets_ws30.pkl"] #["wavelets_ws20.pkl", "wavelets_ws30.pkl", "wavelets_ws40.pkl", "wavelets_ws50.pkl"]
 DATA_PATH = "/dcs/large/u2288122/Workspace/qpp_classification/consolidated_data"
+
 def set_dims(x):
     x = np.expand_dims(np.array(x), axis=-1)
     if x.ndim == 3:
