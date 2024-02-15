@@ -11,18 +11,21 @@ from keras.utils.vis_utils import plot_model
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Conv2D, Dense, Dropout, Flatten, MaxPooling2D
 
+# GPU variables.         Execute `module load cuda11.2`
+gpu_server = True
+selected_gpu = '0'
 
-# Internal imports and global variables
-RANDOM_SEED = 47
-DATA_PATH = "/dcs/large/u2288122/Workspace/qpp_classification/consolidated_data"
-MODEL_PATH = "/dcs/large/u2288122/Workspace/qpp_classification/model/saved_models"
+# Global variables
 NAME = False #"QPP_detector_300t_ws30.ml"
 DATA_FILE = "wavelets_ws30.pkl"
 VALIDATION = True
 PLOT = False
+DATA_PATH = "/dcs/large/u2288122/Workspace/qpp_classification/consolidated_data"
+MODEL_PATH = "/dcs/large/u2288122/Workspace/qpp_classification/model/saved_models"
 IMG_SIZE = (300, 29)
 N_EPOCHS = 32
 BATCH_SIZE = 16
+RANDOM_SEED = 47
 tf.random.set_seed(RANDOM_SEED) # Random seed for reproducibility
 
 def load_dataset(file_path, val=False):
@@ -96,6 +99,24 @@ class CNN:
 
 
 if __name__ == "__main__":
+    if gpu_server:
+        # Setup the server environment
+        import os
+        os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+        os.environ["CUDA_VISIBLE_DEVICES"] = selected_gpu
+
+        import tensorflow as tf
+        # tf.compat.v1.disable_eager_execution()
+        gpus = tf.config.experimental.list_physical_devices('GPU')
+        if gpus:
+            try:
+                for gpu in gpus:
+                    print(f"Using GPU: {gpu}")
+                    tf.config.experimental.set_memory_growth(gpu, True)
+
+            except RuntimeError as e:
+                print(e)
+
     # Load the dataset
     dataset = load_dataset(os.path.join(DATA_PATH, DATA_FILE), val=VALIDATION)
     detector = CNN()

@@ -6,9 +6,9 @@ from tqdm import tqdm
 from flare2wavelet import flare2wavelet
 
 DATA_PATH = "/dcs/large/u2288122/Workspace/qpp_classification/consolidated_data"
-FLARES_FILENAME = "flares.pkl"
-WAVELETS_FILENAME = "wavelets_ws50.pkl"
-WINDOW_SIZE = 50
+FLARES_FILENAME = "flares_large.pkl"
+WAVELETS_FILENAME = "wavelets_large_ws60.pkl"
+WINDOW_SIZE = 60
 
 if __name__ == "__main__":
     flares_dataset = pd.read_pickle(os.path.join(DATA_PATH, FLARES_FILENAME))
@@ -17,7 +17,7 @@ if __name__ == "__main__":
     power_spectrum = []
     coi_power_spectrum = []
 
-    for index, row in tqdm(wavelets_dataset.iterrows()):
+    for index, row in tqdm(wavelets_dataset.iterrows(), total=wavelets_dataset.shape[0]):
         flare = row.flare
         try:
             power, coi_power = flare2wavelet(flare, WINDOW_SIZE)
