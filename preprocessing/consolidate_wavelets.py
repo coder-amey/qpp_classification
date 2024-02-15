@@ -7,8 +7,8 @@ from flare2wavelet import flare2wavelet
 
 DATA_PATH = "/dcs/large/u2288122/Workspace/qpp_classification/consolidated_data"
 FLARES_FILENAME = "flares.pkl"
-WAVELETS_FILENAME = "wavelets_ws40.pkl"
-WINDOW_SIZE = 40
+WAVELETS_FILENAME = "wavelets_ws50.pkl"
+WINDOW_SIZE = 50
 
 if __name__ == "__main__":
     flares_dataset = pd.read_pickle(os.path.join(DATA_PATH, FLARES_FILENAME))

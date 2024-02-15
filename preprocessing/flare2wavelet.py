@@ -8,9 +8,10 @@ import pandas as pd
 from scipy.interpolate import splrep, splev
 
 # Local imports
-from wavelet_transform.waveletFunctions import wave_signif, wavelet
-
-#TODO: secondary smoothing; old_data x 3; new_data -> (noisy, clean) x 3. predict
+try:
+    from preprocessing.wavelet_transform.waveletFunctions import wave_signif, wavelet
+except ImportError:
+    from wavelet_transform.waveletFunctions import wave_signif, wavelet
 
 # CONFIG
 DATA_PATH = "/dcs/large/u2288122/Workspace/qpp_classification/consolidated_data"

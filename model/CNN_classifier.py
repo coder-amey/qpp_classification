@@ -16,12 +16,13 @@ from tensorflow.keras.layers import Conv2D, Dense, Dropout, Flatten, MaxPooling2
 RANDOM_SEED = 47
 DATA_PATH = "/dcs/large/u2288122/Workspace/qpp_classification/consolidated_data"
 MODEL_PATH = "/dcs/large/u2288122/Workspace/qpp_classification/model/saved_models"
+NAME = False #"QPP_detector_300t_ws30.ml"
+DATA_FILE = "wavelets_ws30.pkl"
 VALIDATION = True
 PLOT = False
-DATA_FILE = "wavelets.pkl"
 IMG_SIZE = (300, 29)
 N_EPOCHS = 32
-BATCH_SIZE = 4
+BATCH_SIZE = 16
 tf.random.set_seed(RANDOM_SEED) # Random seed for reproducibility
 
 def load_dataset(file_path, val=False):
@@ -89,6 +90,7 @@ class CNN:
     def evaluate(self, X_test, y_test):
         scores = self.model.evaluate(X_test, y_test)
         print("\n\nModel Evaluation Report:")
+        print("Loss: %.2f" % (scores[0]))
         print("Accuracy: %.2f%%" % (scores[1]*100))
         print("AUC: %.2f" % (scores[2]))
 
@@ -130,4 +132,6 @@ if __name__ == "__main__":
     plt.ylabel('Loss')
     plt.legend()
     plt.show()
-    # detector.save(name="QPP_unclipped.ml")
+    
+    if NAME:
+        detector.save(name=NAME)
