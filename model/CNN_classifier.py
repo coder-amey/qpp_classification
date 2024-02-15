@@ -75,7 +75,7 @@ class CNN:
         self.model.save(os.path.join(path, name))
         if logs:
             try:
-                with open(os.path.join(path, name, "history.log"), 'wb') as pkl_file:
+                with open(os.path.join(path, name, "logs.pkl"), 'wb') as pkl_file:
                     pickle.dump(self.logs, pkl_file)
             except:
                 print("Error storing log file.")
@@ -86,7 +86,7 @@ class CNN:
     def load(name="QPP_detector.ml", path=MODEL_PATH):
         model = tf.keras.models.load_model(os.path.join(path, name))
         try:
-            with open(os.path.join(path, name, "history.log"), 'rb') as pkl_file:
+            with open(os.path.join(path, name, "logs.pkl"), 'rb') as pkl_file:
                 logs = pickle.load(pkl_file)
         except:
             print("Error loading log file.")
@@ -103,6 +103,7 @@ class CNN:
             self.logs = self.model.fit(X_train, y_train, epochs=N_EPOCHS, batch_size=BATCH_SIZE, validation_data=(X_val, y_val))
         else:
             self.logs = self.model.fit(X_train, y_train, epochs=N_EPOCHS, batch_size=BATCH_SIZE)
+        self.logs = {'train_log': self.logs.history, 'parameters': self.logs.params}
         return self.logs
     
     def predict(self, X):
@@ -119,11 +120,9 @@ class CNN:
 if __name__ == "__main__":
     if gpu_server:
         # Setup the server environment
-        import os
         os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
         os.environ["CUDA_VISIBLE_DEVICES"] = selected_gpu
 
-        import tensorflow as tf
         # tf.compat.v1.disable_eager_execution()
         gpus = tf.config.experimental.list_physical_devices('GPU')
         if gpus:
